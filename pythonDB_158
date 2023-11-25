@@ -1,0 +1,84 @@
+import sqlite3
+import tkinter as tk
+from tkinter import messagebox
+
+# Fungsi untuk menentukan prediksi fakultas berdasarkan nilai tertinggi
+def prediksi_fakultas(biologi, fisika, inggris):
+    if biologi > fisika and biologi > inggris:
+        return "Kedokteran"
+    elif fisika > biologi and fisika > inggris:
+        return "Teknik"
+    elif inggris > biologi and inggris > fisika:
+        return "Bahasa"
+    else:
+        return "Tidak dapat memprediksi"
+
+# Fungsi untuk menangani tombol submit
+def submit_nilai():
+    nama_siswa = entry_nama.get()
+    nilai_biologi = float(entry_biologi.get())
+    nilai_fisika = float(entry_fisika.get())
+    nilai_inggris = float(entry_inggris.get())
+
+    prediksi = prediksi_fakultas(nilai_biologi, nilai_fisika, nilai_inggris)
+
+    # Menyimpan data ke SQLite
+    conn = sqlite3.connect('Mikey.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO nilai_siswa (nama_siswa, biologi, fisika, inggris, prediksi_fakultas)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (nama_siswa, nilai_biologi, nilai_fisika, nilai_inggris, prediksi))
+    conn.commit()
+    conn.close()
+
+    messagebox.showinfo("Submit Nilai", "Data berhasil disimpan. Prediksi fakultas: " + prediksi)
+
+# Membuat tabel nilai_siswa jika belum ada
+conn = sqlite3.connect('Mikey.db')
+cursor = conn.cursor()
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS nilai_siswa (
+        nama_siswa TEXT,
+        biologi INT,
+        fisika INT,
+        inggris INT,
+        prediksi_fakultas TEXT
+    )
+''')
+conn.commit()
+conn.close()
+
+# Membuat GUI menggunakan Tkinter
+app = tk.Tk()
+app.title("Prediksi Fakultas")
+
+# Label dan Entry untuk nama siswa
+label_nama = tk.Label(app, text="Nama Siswa:")
+label_nama.grid(row=0, column=0)
+entry_nama = tk.Entry(app)
+entry_nama.grid(row=0, column=1)
+
+# Label dan Entry untuk nilai Biologi
+label_biologi = tk.Label(app, text="Nilai Biologi:")
+label_biologi.grid(row=1, column=0)
+entry_biologi = tk.Entry(app)
+entry_biologi.grid(row=1, column=1)
+
+# Label dan Entry untuk nilai Fisika
+label_fisika = tk.Label(app, text="Nilai Fisika:")
+label_fisika.grid(row=2, column=0)
+entry_fisika = tk.Entry(app)
+entry_fisika.grid(row=2, column=1)
+
+# Label dan Entry untuk nilai Inggris
+label_inggris = tk.Label(app, text="Nilai Inggris:")
+label_inggris.grid(row=3, column=0)
+entry_inggris = tk.Entry(app)
+entry_inggris.grid(row=3, column=1)
+
+# Tombol submit
+submit_button = tk.Button(app, text="Submit", command=submit_nilai)
+submit_button.grid(row=4, column=0, columnspan=2)
+
+app.mainloop()
